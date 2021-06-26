@@ -53,7 +53,7 @@ public class CustomView extends View {
     }
 
     public  void start() {
-        new CountDownTimer(time, 20) {
+        new CountDownTimer(time, 1) {
             @Override
             public void onTick(long millisUntilFinished) {
                 if(check==1)
@@ -81,7 +81,7 @@ public class CustomView extends View {
         mpaint =new Paint(Paint.ANTI_ALIAS_FLAG);
         mpaint.setAntiAlias(true);
         mpaint.setColor(Color.BLUE);
-        tpaint.setTextSize(100);
+        tpaint.setTextSize(50);
         tpaint.setColor(Color.BLUE);
         start();
         if(set==null)
@@ -105,13 +105,13 @@ public class CustomView extends View {
         }
         if(y>=getHeight()) {
             check=1;
-            canvas.drawText("Game Over",400,100,tpaint);
+            canvas.drawText("Game Over",300,100,tpaint);
         }
         if(mrect.left==0){
             mrect.left=getWidth()/2-150;
         }
         mrect.top = getHeight()-40;
-        mrect.right=mrect.left+400;
+        mrect.right=mrect.left+300;
         mrect.bottom=mrect.top+100;
         if(canvas!=null)
         canvas.drawRect(mrect,mpaint);
