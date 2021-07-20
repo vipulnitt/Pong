@@ -19,5 +19,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(new CustomView(this));
 
     }
+    @Override
+    public void onBackPressed() {
+System.exit(0);
+}
 
 }

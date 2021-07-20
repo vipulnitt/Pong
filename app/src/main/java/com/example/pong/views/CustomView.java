@@ -20,22 +20,24 @@ import com.example.pong.R;
 
 
 public class CustomView extends View {
-    Rect mrect;
-    Paint mpaint;
-    Paint tpaint;
+    Rect mrect,srect;
+    Paint mpaint,spaint,fpaint;
+    Paint tpaint,t2paint;
     private Bitmap bmp;
     public static int x=500;
     public static int y=10;
     public static int xspeed=5;
     public static int yspeed=5;
     private int spriteWidth=0;
-    private int check=0;
-    private int score=0,fs=0,rand;
-    MediaPlayer mediaPlayer;
+    private int check=0,timecheck=0;
+    private int score=0,fs=0,rand,w=5;
+    MediaPlayer mediaPlayer,mediaPlayer1,mediaPlayer3;
     int time=10000;
     public CustomView(Context context) {
         super(context);
         mediaPlayer =MediaPlayer.create(context,R.raw.beep);
+        mediaPlayer1 =MediaPlayer.create(context,R.raw.beep1);
+        mediaPlayer3 =MediaPlayer.create(context,R.raw.abc);
         init(null);
     }
     public CustomView(Context context, @Nullable AttributeSet attrs) {
@@ -51,6 +53,27 @@ public class CustomView extends View {
     public CustomView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init(attrs);
+    }
+    public void waits()
+    {
+        new CountDownTimer(5000,1000)
+        {
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                w--;
+                timecheck=1;
+                postInvalidate();
+            }
+
+            @Override
+            public void onFinish() {
+            timecheck=2;
+            postInvalidate();
+            cancel();
+            }
+        }.start();
+
     }
     public  void start() {
         new CountDownTimer(time, 1) {
@@ -88,12 +111,22 @@ public class CustomView extends View {
         bmp = BitmapFactory.decodeResource(getResources(), R.drawable.bitmap);
         spriteWidth = bmp.getWidth();
         mrect =new Rect();
+        srect = new Rect();
         tpaint = new Paint();
+        t2paint = new Paint();
+        fpaint = new Paint();
+        spaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        spaint.setAntiAlias(true);
+        spaint.setColor(Color.RED);
         mpaint =new Paint(Paint.ANTI_ALIAS_FLAG);
         mpaint.setAntiAlias(true);
         mpaint.setColor(Color.BLUE);
-        tpaint.setTextSize(50);
-        tpaint.setColor(Color.BLUE);
+        tpaint.setTextSize(30);
+        tpaint.setColor(Color.RED);
+        t2paint.setTextSize(32);
+        t2paint.setColor(Color.WHITE);
+        fpaint.setTextSize(40);
+        fpaint.setColor(Color.BLACK);
         if(check==0) {
             rand = (int)(Math.random()*(getWidth()-10))+10;
             x=rand;
@@ -118,6 +151,7 @@ public class CustomView extends View {
         }
         if(y>=getHeight()-60) {
             check=1;
+            mediaPlayer3.start();
             SharedPreferences getscore = getContext().getSharedPreferences("data",Context.MODE_PRIVATE);
             int scr = getscore.getInt("hscore",0);
             if(scr<score)
@@ -127,8 +161,25 @@ public class CustomView extends View {
                 editor.apply();
                 scr=score;
             }
-            canvas.drawText("Game Over Move Slider To Restart!",getWidth()/6+getWidth()/13,getHeight()/10,tpaint);
-            canvas.drawText("Highest Score:"+scr,getWidth()/6+getWidth()/13,getHeight()/6,tpaint);
+            tpaint.setColor(Color.WHITE);
+            tpaint.setTextSize(35);
+            srect.left=getWidth()-20;
+            srect.top = getHeight()/35;
+            srect.right=20;
+            srect.bottom = (getHeight()/9)*2;
+            canvas.drawRect(srect,spaint);
+            canvas.drawText("Game Over!",getWidth()/2-80,getHeight()/35+200,t2paint);
+            canvas.drawText("Highest Score:"+scr,getWidth()/2-100,getHeight()/35+150,t2paint);
+            if(timecheck==1)
+            canvas.drawText("Wait:"+w,getWidth()/2-30,getHeight()/2,fpaint);
+            if(timecheck==0)
+            {
+                waits();
+            }
+            if(timecheck==2)
+            {
+                canvas.drawText("Slide To Restart",getWidth()/2-150,getHeight()/2,fpaint);
+            }
 
         }
         if((y>=(this.getHeight()-80))&&(x>=mrect.left&&x<=mrect.left+300))
@@ -138,6 +189,7 @@ public class CustomView extends View {
                 fs=0;
                 score++;
             }
+            mediaPlayer1.start();
         }
         if(mrect.left==0){
             mrect.left=getWidth()/2-150;
@@ -161,23 +213,28 @@ public class CustomView extends View {
                 return true;
             }
             case MotionEvent.ACTION_MOVE:{
-                float X =event.getX();
-                if(X<(getWidth()-295))
-                mrect.left= (int) X;
-                postInvalidate();
-                if(check==1)
-                {
-                    y=10;
-                    x=500;
-                    xspeed=5;
-                    yspeed=5;
-                    rand = (int)(Math.random()*(getWidth()-10))+10;
-                    x=rand;
-                    start();
-                    check=0;
-                    score=0;
+                if(timecheck!=1) {
+                    float X = event.getX();
+                    if (X < (getWidth() - 295))
+                        mrect.left = (int) X;
+                    postInvalidate();
+                    if (check == 1 && timecheck == 2) {
+                        mediaPlayer3.pause();
+                        timecheck = 0;
+                        y = 10;
+                        x = 500;
+                        xspeed = 5;
+                        yspeed = 5;
+                        rand = (int) (Math.random() * (getWidth() - 40)) + 10;
+                        x = rand;
+                        start();
+                        check = 0;
+                        score = 0;
+                        tpaint.setColor(Color.RED);
+                        w = 5;
                     }
-                postInvalidate();
+                    postInvalidate();
+                }
                 return true;
             }
 
