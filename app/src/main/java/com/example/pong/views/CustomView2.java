@@ -19,38 +19,39 @@ import androidx.annotation.Nullable;
 import com.example.pong.R;
 
 
-public class CustomView extends View {
-    Rect mrect,srect;
+public class CustomView2 extends View {
+    Rect mrect,srect,crect;
     Paint mpaint,spaint,fpaint;
     Paint tpaint,t2paint;
     private Bitmap bmp;
     public static int x=500;
-    public static int y=10;
+    public static int y=100;
     public static int xspeed=5;
     public static int yspeed=5;
     private int spriteWidth=0;
     private int check=0,timecheck=0;
     private int score=0,fs=0,rand,w=5;
+    private float botmove;
     MediaPlayer mediaPlayer,mediaPlayer1,mediaPlayer3;
     int time=10000;
-    public CustomView(Context context) {
+    public CustomView2(Context context) {
         super(context);
         mediaPlayer =MediaPlayer.create(context,R.raw.beep);
         mediaPlayer1 =MediaPlayer.create(context,R.raw.beep1);
         mediaPlayer3 =MediaPlayer.create(context,R.raw.abc);
         init(null);
     }
-    public CustomView(Context context, @Nullable AttributeSet attrs) {
+    public CustomView2(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init(attrs);
     }
 
-    public CustomView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public CustomView2(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(attrs);
     }
 
-    public CustomView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public CustomView2(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init(attrs);
     }
@@ -68,9 +69,9 @@ public class CustomView extends View {
 
             @Override
             public void onFinish() {
-            timecheck=2;
-            postInvalidate();
-            cancel();
+                timecheck=2;
+                postInvalidate();
+                cancel();
             }
         }.start();
 
@@ -82,10 +83,10 @@ public class CustomView extends View {
                 if(check==1) {
                     cancel();
                 }
-             x+=xspeed;
-             y+=yspeed;
+                x+=xspeed;
+                y+=yspeed;
                 postInvalidate();
-             fs++;
+                fs++;
             }
             @Override
             public void onFinish()
@@ -111,6 +112,7 @@ public class CustomView extends View {
         bmp = BitmapFactory.decodeResource(getResources(), R.drawable.bitmap);
         spriteWidth = bmp.getWidth();
         mrect =new Rect();
+        crect =new Rect();
         srect = new Rect();
         tpaint = new Paint();
         t2paint = new Paint();
@@ -133,9 +135,9 @@ public class CustomView extends View {
             start();
         }
         if(set==null)
-     {
-         return;
-     }
+        {
+            return;
+        }
     }
 
     @Override
@@ -144,15 +146,15 @@ public class CustomView extends View {
         if (x < 0 || x + spriteWidth >= canvas.getWidth()){
             xspeed *= -1;
             mediaPlayer.start();
-    }
-        if(y<0) {
+        }
+        if(y<90) {
             yspeed *= -1;
             mediaPlayer.start();
         }
         if(y>=getHeight()-60) {
             check=1;
             if(mediaPlayer3!=null)
-            mediaPlayer3.start();
+                mediaPlayer3.start();
             SharedPreferences getscore = getContext().getSharedPreferences("data",Context.MODE_PRIVATE);
             int scr = getscore.getInt("hscore",0);
             if(scr<score)
@@ -172,7 +174,7 @@ public class CustomView extends View {
             canvas.drawText("Game Over!",getWidth()/2-80,getHeight()/35+200,t2paint);
             canvas.drawText("Highest Score:"+scr,getWidth()/2-100,getHeight()/35+150,t2paint);
             if(timecheck==1)
-            canvas.drawText("Wait:"+w,getWidth()/2-30,getHeight()/2,fpaint);
+                canvas.drawText("Wait:"+w,getWidth()/2-30,getHeight()/2,fpaint);
             if(timecheck==0)
             {
                 waits();
@@ -199,9 +201,14 @@ public class CustomView extends View {
         mrect.right=mrect.left+300;
         mrect.bottom=mrect.top+100;
         if(canvas!=null)
-        canvas.drawRect(mrect,mpaint);
+            canvas.drawRect(mrect,mpaint);
         canvas.drawBitmap(bmp,x,y,mpaint);
-            canvas.drawText("Score:" + score, getWidth()/3+getWidth()/10, getHeight()/14, tpaint);
+        crect.left =x-150;
+        crect.top = 40;
+        crect.right=crect.left+300;
+        crect.bottom=crect.top+40;
+        canvas.drawRect(crect,spaint);
+        canvas.drawText("Score:" + score, getWidth()/3+getWidth()/10, getHeight()/14, tpaint);
     }
 
     @Override
@@ -219,14 +226,13 @@ public class CustomView extends View {
                     if (X>150&&X < (getWidth() -150)) {
                         if (X >= mrect.left && X <= mrect.right) {
                             mrect.left = (int) X-150;
-                            mrect.right = mrect.left + 300;
                         }
                     }
                     postInvalidate();
                     if (check == 1 && timecheck == 2) {
                         mediaPlayer3.pause();
                         timecheck = 0;
-                        y = 10;
+                        y = 100;
                         xspeed = 5;
                         yspeed = 5;
                         rand = (int) (Math.random() * (getWidth() - 40)) + 10;
