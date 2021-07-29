@@ -29,9 +29,10 @@ public class CustomView2 extends View {
     public static int xspeed=5;
     public static int yspeed=5;
     private int spriteWidth=0;
-    private int check=0,timecheck=0;
-    private int score=0,fs=0,rand,w=5;
-    private float botmove;
+    private int check=0,cscore=0,timecheck=0,slidelenght=300;
+    private int score=0,fs=0,rand,drand,w=5,bot,boosterdown=100,boosterlocation=-10,boostercheck=1;
+    private float botstart=0,botmove=6;
+    private int createbooster=0;
     MediaPlayer mediaPlayer,mediaPlayer1,mediaPlayer3;
     int time=10000;
     public CustomView2(Context context) {
@@ -85,6 +86,8 @@ public class CustomView2 extends View {
                 }
                 x+=xspeed;
                 y+=yspeed;
+                if(createbooster==1)
+                boosterdown+=3;
                 postInvalidate();
                 fs++;
             }
@@ -93,13 +96,19 @@ public class CustomView2 extends View {
             {
                 if(check==0) {
                     if(xspeed>0)
+                    {
                         xspeed++;
+                    }
                     else
+                    {
                         xspeed--;
-                    if(yspeed>0)
+                    }
+                    if(yspeed>0) {
                         yspeed++;
-                    else
+                    }
+                    else {
                         yspeed--;
+                    }
                     start();
                 }
                 else cancel();
@@ -143,15 +152,23 @@ public class CustomView2 extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         canvas.drawColor(Color.GREEN);
-        if (x < 0 || x + spriteWidth >= canvas.getWidth()){
+                if (x < 0 || x + spriteWidth >= canvas.getWidth()){
             xspeed *= -1;
             mediaPlayer.start();
         }
-        if(y<90) {
+      /*  if(y<90) {
             yspeed *= -1;
             mediaPlayer.start();
+        }*/
+        if((y<87)&&(x-10>=crect.left&&x<=crect.left+300))
+        {
+            yspeed*=-1;
+            if(check==0) {
+                cscore++;
+            }
+            mediaPlayer1.start();
         }
-        if(y>=getHeight()-60) {
+        if(y>=getHeight()-60||y<80) {
             check=1;
             if(mediaPlayer3!=null)
                 mediaPlayer3.start();
@@ -165,14 +182,20 @@ public class CustomView2 extends View {
                 scr=score;
             }
             tpaint.setColor(Color.WHITE);
-            tpaint.setTextSize(35);
+            tpaint.setTextSize(30);
             srect.left=getWidth()-20;
             srect.top = getHeight()/35;
             srect.right=20;
-            srect.bottom = (getHeight()/9)*2;
+            srect.bottom = (getHeight()/7)*2;
             canvas.drawRect(srect,spaint);
             canvas.drawText("Game Over!",getWidth()/2-80,getHeight()/35+200,t2paint);
             canvas.drawText("Highest Score:"+scr,getWidth()/2-100,getHeight()/35+150,t2paint);
+            if(cscore<score)
+            canvas.drawText("You Win!",getWidth()/2-80,getHeight()/35+250,t2paint);
+            else if(cscore>score)
+                canvas.drawText("You Loose!",getWidth()/2-90,getHeight()/35+250,t2paint);
+            else
+                canvas.drawText("Tie!",getWidth()/2-20,getHeight()/35+250,t2paint);
             if(timecheck==1)
                 canvas.drawText("Wait:"+w,getWidth()/2-30,getHeight()/2,fpaint);
             if(timecheck==0)
@@ -185,7 +208,7 @@ public class CustomView2 extends View {
             }
 
         }
-        if((y>=(this.getHeight()-80))&&(x>=mrect.left&&x<=mrect.left+300))
+        if((y>=(this.getHeight()-80))&&(x-10>=mrect.left&&x<=mrect.left+slidelenght))
         {
             yspeed*=-1;
             if(check==0&&fs>40) {
@@ -198,17 +221,50 @@ public class CustomView2 extends View {
             mrect.left=getWidth()/2-150;
         }
         mrect.top = getHeight()-40;
-        mrect.right=mrect.left+300;
+        mrect.right=mrect.left+slidelenght;
         mrect.bottom=mrect.top+100;
+
+        if(createbooster==0&&boostercheck==1)
+        {
+            drand = (int)(Math.random()*(getWidth()-50))+30;
+            boosterlocation=drand;
+            createbooster=1;
+            boostercheck=0;
+            boosterdown=100;
+        }
+        if(boostercheck==0&&createbooster==1)
+            canvas.drawCircle(boosterlocation,boosterdown,30,mpaint);
+        if((boosterlocation>=mrect.left)&&(boosterlocation<=mrect.left+300)&&boosterdown>=(this.getHeight()-80))
+        {
+            boostercheck=0;
+            createbooster=0;
+            boosterdown=100;
+            powerbooster();
+        }
+       else if(boosterdown>=this.getHeight()-80)
+        {
+            createbooster=0;
+            boostercheck=1;
+        }
         if(canvas!=null)
             canvas.drawRect(mrect,mpaint);
         canvas.drawBitmap(bmp,x,y,mpaint);
-        crect.left =x-150;
+      if(botstart==0)
+        {
+            bot =x;
+            botstart=1;
+        }
+        if(xspeed>0&&botmove<0||xspeed<0&&botmove>0)
+            botmove*=-1;
+        bot+=botmove;
+        if(bot>150&&bot<getWidth()-150)
+        crect.left =bot-150;
         crect.top = 40;
         crect.right=crect.left+300;
         crect.bottom=crect.top+40;
         canvas.drawRect(crect,spaint);
-        canvas.drawText("Score:" + score, getWidth()/3+getWidth()/10, getHeight()/14, tpaint);
+        canvas.drawText("Your Score:" + score, getWidth()/3+getWidth()/10-20, getHeight()/12, tpaint);
+        canvas.drawText("Compter Score:" + cscore, getWidth()/3+getWidth()/10-40, getHeight()/9, tpaint);
     }
 
     @Override
@@ -223,9 +279,9 @@ public class CustomView2 extends View {
             case MotionEvent.ACTION_MOVE:{
                 if(timecheck!=1) {
                     float X = event.getX();
-                    if (X>150&&X < (getWidth() -150)) {
+                    if (X>slidelenght/2&&X < (getWidth() -slidelenght/2)) {
                         if (X >= mrect.left && X <= mrect.right) {
-                            mrect.left = (int) X-150;
+                            mrect.left = (int) X-slidelenght/2;
                         }
                     }
                     postInvalidate();
@@ -242,6 +298,11 @@ public class CustomView2 extends View {
                         score = 0;
                         tpaint.setColor(Color.RED);
                         w = 5;
+                        botmove=5;
+                        botstart=0;
+                        cscore=0;
+                        createbooster=0;
+                        boosterdown=100;
                     }
                     postInvalidate();
                 }
@@ -251,5 +312,26 @@ public class CustomView2 extends View {
         }
         return value;
     }
+    public void powerbooster()
+    {
+        new CountDownTimer(5000,1000)
+        {
 
+            @Override
+            public void onTick(long millisUntilFinished) {
+               slidelenght=400;
+                postInvalidate();
+            }
+
+            @Override
+            public void onFinish() {
+                slidelenght=300;
+                createbooster=0;
+                boostercheck=1;
+                postInvalidate();
+                cancel();
+            }
+        }.start();
+
+    }
 }
